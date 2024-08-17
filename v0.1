@@ -1,0 +1,1233 @@
+# FlexiCode
+CodeFlex is a dynamic code and data management tool that enables seamless creation, processing, and updating of static and dynamic data. It features a flexible template system, intelligent parsing, and customizable functions, making it ideal for developers managing complex data structures and adapting code to evolving project needs.
+# Function to create static data and code
+def createStaticsAndCode(data=None, patternDefaultDatas=None):
+    if data is None:
+        data = [[[[['staticData']]]], [[['Code']]]]
+    if patternDefaultDatas is None:
+        patternDefaultDatas = {
+            'staticData': {'dataName': {'dataNamePrecisely': {'typeCode': []}}},
+            'codeData': {'realCode': {'typeCode': {}}},
+            'fundamentalData': {'fundamentalType': {'codeType': []}}
+        }
+
+    # Processing static data
+    for subDataClient, dataNamePattern in zip(data[0], patternDefaultDatas['staticData'].keys()):
+        for subDataClient2, dataNamePrecisely in zip(subDataClient, patternDefaultDatas['staticData'][dataNamePattern].keys()):
+            for subDataClient3, typeCode in zip(subDataClient2, patternDefaultDatas['staticData'][dataNamePattern][dataNamePrecisely].keys()):
+                for staticData in subDataClient3:
+                    if not isinstance(patternDefaultDatas['staticData'][dataNamePattern][dataNamePrecisely][typeCode], list):
+                        patternDefaultDatas['staticData'][dataNamePattern][dataNamePrecisely][typeCode] = []
+                    patternDefaultDatas['staticData'][dataNamePattern][dataNamePrecisely][typeCode].append(staticData)
+    
+    # Processing code data
+    for typeCode in patternDefaultDatas['staticData']['dataName']['dataNamePrecisely']['typeCode']:
+        for patternId in patternDefaultDatas['staticData']['dataName']['dataNamePrecisely']['typeCode']:
+            for subHighLevelData in data[1]:
+                for subData in subHighLevelData:
+                    for code in subData:
+                        match = re.match(patternId, code[1:])
+                        if match:
+                            if typeCode not in patternDefaultDatas['codeData']['realCode']:
+                                patternDefaultDatas['codeData']['realCode'][typeCode] = {}
+                            patternDefaultDatas['codeData']['realCode'][typeCode][match.group()] = code
+                            patternDefaultDatas['codeData']['idData'][typeCode]['id'] = match.group()
+    
+    return patternDefaultDatas
+pattern_default_datas_filled = createStaticsAndCode()
+# Function to add additional form data to the existing form
+def additionFormFunction(form, additionalForm):
+    for typeOf, subData in additionalForm.items():
+        if typeOf not in form:
+            form[typeOf] = {}
+        insertInternalData(subData, form[typeOf])
+
+# Helper function to recursively insert internal data into current data
+def insertInternalData(subData, current_data):
+    if isinstance(subData, str):
+        if subData not in current_data:
+            current_data[subData] = {}
+    elif isinstance(subData, list):
+        for item in subData:
+            if isinstance(item, str) and item not in current_data:
+                current_data[item] = {}
+            elif isinstance(item, dict):
+                for key, value in item.items():
+                    if isinstance(value, list):
+                        if key not in current_data:
+                            current_data[key] = []
+                        current_data[key].extend(value)
+    elif isinstance(subData, dict):
+        for subInternalName, value in subData.items():
+            if isinstance(value, dict):
+                if subInternalName not in current_data:
+                    current_data[subInternalName] = {}
+                insertInternalData(value, current_data[subInternalName])
+            elif isinstance(value, list):
+                if subInternalName not in current_data:
+                    current_data[subInternalName] = []
+                current_data[subInternalName].extend(value)
+            elif isinstance(value, str):
+                if subInternalName not in current_data:
+                    current_data[subInternalName] = {}
+                current_data[subInternalName] = value
+
+# Define example form structure
+form = {'status': {}, 'response': {'error': {'request': {}, 'running': {}}}, 'requests': {'precisely': {}}, 'name': {}}
+additionalForm = {
+    'error': ['request', 'running'],
+    'requests': [
+        'name', {'mark': ['block', 'text']},
+        {'details': [{'block': [{'dynamic-name': ['argument', 'tag']}]}]}
+    ],
+    'internal-request': ['private-request-details']
+}
+
+# Apply the additional form function to populate the form
+additionFormFunction(form, additionalForm)
+
+# Print the updated form to verify correctness
+import pprint
+pprint.pprint(form)
+
+    #In order to make to do this procces that will make all the sub data in the from and after to insert the fundamental data like id block where we need 
+    #we can in this case to do recursive when this statment happen isinstance(form[typeOf],dict) and create a list that will contain all the "key" we check and return any dict
+    #and after we will just call to the function that create the empty data in spesific place like this :
+    #But the problem with just put this function that we may more things in the same condition that mean may in this proccess form[key[i]]={} we delete thing in 
+    #the second we need to put second loop in order to get the value of and the key .
+    #In shortly we need to find way to call the function that turn on again the searching on the element issue and contain all of the keys that we have from this and 
+    #sparete the keys we need to active for every organ it self and to care about and so to put in . work with additionalForm and the form in the same time and in the runing 
+    #i.e to care about one thing in the additionalForm function and to add or do something in the Form in the same time that we decide for other fucntion or things .
+    #if we insert all the data in createSpesific we can catch it . 
+
+#fundamentalData that we want to change or not and insert to any place in form 
+#We actually will insert this type of fundamntal data to the form according to the fundamntal data in the fundamntal place at the data place in static data we insert .
+#We have tow different type "fundamntal-data" one is like the data we insert according the ordinary things that we insert in the "static-data" and second is fundamntal data
+#we insert according to things that in the place that exist for fundamntal-data in static data . But all the sources from static-data. 
+
+#The "fundmantalThing" is actually very important because of it do tow thing 1: create the funmantal data with the material we give and the function that suit 
+#2 : also because of the function that choise according the fundamntalThing we know where exact to insert the fundamntal data to the form 
+import itertools
+
+def create_indexed_list(text, organ_list):
+    organRangeInText = []
+    current_index = 0 
+    for organ in organ_list:
+        start_index = text.find(organ, current_index)
+        end_index = start_index + len(organ) - 1
+        organRangeInText.append((start_index, end_index))  # Append as tuple
+        current_index = end_index + 1  # Update current index
+    return organRangeInText  
+
+def push(text, index, data):
+    return text[:index] + data + text[index:]  # Return the modified text
+
+def delete_range(text, deleteRange):
+    start_index, end_index = deleteRange
+    return text[:start_index] + text[end_index + 1:]  # Return the modified text
+
+def addFormFundamental():
+    for fundamentalType in pattern_default_datas_filled['fundamentalData'].keys():
+        for codeType, modifyFundamentalData in pattern_default_datas_filled[fundamentalType].items():
+            paths = createPathsForFormAndForModifyData(fundamentalType, codeType)
+            create_and_insert_fundamental_data(modifyFundamentalData, paths, fundamentalType, codeType)
+
+def evaluate_condition(condition_str, data):
+    """
+    Evaluate the condition string on the value.
+    
+    Args:
+    - condition_str (str): The condition string to evaluate.
+    - data (any): The data against which the condition is evaluated.
+    
+    Returns:
+    - bool: True if the condition evaluates to True, False otherwise.
+    """
+    try:
+        return eval(condition_str, {'data': data})
+    except Exception as e:
+        print(f"Error evaluating condition: {e}")
+        return False
+
+
+def find_paths_by_condition(data, condition_str, path_prefix=[]):
+    """
+    Recursively find paths in the data that match the condition.
+    
+    Args:
+    - data (dict or list): The data to search within.
+    - condition_str (str): The condition string to evaluate.
+    - path_prefix (list): The prefix path to start searching from (default []). 
+    
+    Returns:
+    - list: A list of paths (lists) in the data that match the condition.
+    """
+    matching_paths = []
+
+    if isinstance(data, dict):
+        disassembly_data = data.items()
+    elif isinstance(data, list):
+        disassembly_data = enumerate(data)
+    else:
+        return matching_paths
+
+    for key, value in disassembly_data:
+        new_path_prefix = path_prefix + [key]
+        if evaluate_condition(condition_str, value):
+            matching_paths.append(new_path_prefix)
+        matching_paths.extend(find_paths_by_condition(value, condition_str, new_path_prefix))
+
+    return matching_paths
+
+
+def create_and_insert_fundamental_data(modify_fundamental_data, paths, fundamental_type, code_type):
+    """
+    Create and insert fundamental data into designated places according to conditions and paths.
+
+    Args:
+    - modify_fundamental_data (any): Data used to modify fundamental data.
+    - paths (dict): Paths dictionary specifying where to insert data.
+    - fundamental_type (str): The type of fundamental data.
+    - code_type (str): The type of code for which to modify fundamental data.
+    """
+    type_using_paths = {'insertPlace': ['form'], 'auxiliaryContentForModifyData': ['staticData']}
+    conditions_to_modify_fundamental_data = {
+        'codeType': {
+            'fundamentalType': {
+                'form/or other insertPlace': {
+                    'function1': [
+                        modify_fundamental_data,
+                        f"paths['staticData'][1], paths['staticData'][2] ~ data !== 2 and value == 1^^ 'more condition and data for the same argument",
+                        'otherArgument'
+                    ],
+                    'function2': ['argument'],
+                    'function3': ['all!staticData^^moreRequest for data in this argument', modify_fundamental_data]
+                }
+            },
+            'codeType2': {
+                'fundamentalType2': {
+                    'function': 'codeType$fundamentalType$insertPlace$function'
+                }
+            }
+        }
+    }
+
+    # Insert data into specified places
+    for insert_place in type_using_paths['insertPlace']:
+        for function, arguments_list in conditions_to_modify_fundamental_data[code_type][fundamental_type].items():
+            if isinstance(arguments_list, list):
+                for arguments in arguments_list:
+                    if isinstance(arguments, list):
+                        arguments_place = ()
+                        for argument in arguments:
+                            arguments_place += (argument,)
+                        function_str = f"{function}{arguments_place}"
+                        data = eval(function_str)
+                        for path in paths[insert_place]:
+                            insert_data(form, path, data)
+
+    # Define internal command function to retrieve all data
+    def all_command(data_for_function_command):
+        paths_data = paths[data_for_function_command]
+        data = get_nested_data(pattern_default_datas_filled[data_for_function_command], paths_data)
+        return data
+
+    # Internal commands dictionary for special commands
+    internal_commands = {'all': all_command('data')}
+
+    # Perform preparation for importing data
+
+    preparation_import_data('function', conditions_to_modify_fundamental_data, code_type, fundamental_type,
+                            paths_type=None, run_number=0, paths_insert_copied_data=[])
+
+    # Modify data according to conditions and paths
+    for function, arguments_index in zip(conditions_to_modify_fundamental_data[code_type][fundamental_type].keys(),
+                                         range(len(conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index]))):
+        if isinstance(conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index], str):
+            request_for_data_in_argument_places = conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index].split('^^')
+            organ_range_in_text = create_indexed_list(
+                conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index], request_for_data_in_argument_places)
+            index_roof = 0
+            for request_for_data_in_argument_place in request_for_data_in_argument_places:
+                skip_outer_loop = False
+                for internal_command in internal_commands.keys():
+                    internal_command_length = len(internal_command)
+                    request_for_data_in_argument_place_search_internal_command = request_for_data_in_argument_place[0:internal_command_length - 1]
+                    if request_for_data_in_argument_place_search_internal_command == internal_command and request_for_data_in_argument_place[internal_command_length] == '!':
+                        data_for_function_command = internal_command[len(internal_command):]
+                        data = internal_commands[internal_command](data_for_function_command)
+                        organ_range = organ_range_in_text[index_roof]
+                        for organ_range_index in range(*organ_range):
+                            del conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index][organ_range_index]
+                        conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index].insert(organ_range[0], data)
+                        skip_outer_loop = True
+                if skip_outer_loop:
+                    index_roof += 1
+                    continue
+                separate_between_data_and_condition = re.findall(r'\s+\~\s+', request_for_data_in_argument_place)
+                datas = separate_between_data_and_condition[0].split(',')
+                for index_data, data in enumerate(datas):
+                    space_split = re.findall(r'\s+', data)
+                    if len(space_split) > 1:
+                        datas[index_data] = space_split[0]
+                if len(separate_between_data_and_condition) > 1:
+                    range_data_index = create_indexed_list(
+                        conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index][
+                        organ_range[0]:organ_range[1]], datas)
+                    for index_data in range(len(datas)):
+                        condition = separate_between_data_and_condition[1]
+                        paths_data = find_paths_by_condition(condition, eval(datas[index_data]))
+                        if paths_data:
+                            for path_data in paths_data:
+                                with_deletes = delete_range(
+                                    conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index][
+                                    organ_range[0]:organ_range[1]], range_data_index[index_data])
+                                conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index][
+                                    organ_range[0]:organ_range[1]] = with_deletes
+                                data_for_argument = get_nested_data(eval(data), path_data)
+                                conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index].insert(
+                                    range_data_index[index_data][0], data_for_argument)
+                        else:
+                            data_for_argument = 'no suitable data'
+                            del conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index][
+                                organ_range[0]:organ_range[1]]
+                            conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index].insert(
+                                organ_range[0], data_for_argument)
+                elif separate_between_data_and_condition[0]:
+                    for data in datas:
+                        data_for_argument = eval(data)
+                        del conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index][organ_range[0]:organ_range[1]]
+                        conditions_to_modify_fundamental_data[code_type][fundamental_type][function][arguments_index].insert(
+                            organ_range[0], data_for_argument)
+                index_roof += 1
+
+
+  #We will read the str arguments of function "modify" tit and insert as condition,data to function that give path for this data and after insert the data to spesific
+  #argument to function . 
+
+   #Function planing:
+     #Put the wanted datas from the "fundamntalData" in correct function according the "fundamntalType", modify and more the "fundamntalData" according to data in
+     #paths['staticData'] and insert the wnated things to form accroding path['form']. 
+  
+     #(that ok we choise the function that we active on the data just according the "fundamntalType" 
+     #because the "fundamntalData" that in the "patternDefaultDatasFilled" we insert how much data we want in one "fundamntalType" and we
+     #can create how much we want "fundamntalType"
+     #and create request for happining for every one of them (turn-on function) . as well as we create condition(paths) according the "typeCode" (see how path conditions build
+     # in 'createPathsForFormAndForModifyData' in 'fundamntalTypesPathsInterface' )  ).
+"""for fundamntalTypePaths,pathsBig in paths.items():
+     for pathsType in pathsBig.key():
+        for path in pathsBig[pathsType]:"""
+
+    #So item equel to 'all' in this tree i.e in this case should be -> 
+    # staticData['data1']['data2'][staticData['data1']['data2'].key()]['data4']
+#The porpuse to return it in this case in 'fundamntalTypesPathsSystemForm' : 
+# Example of how paths might be structured:
+# ['path1']['path2']['pathA']['path4'],
+# ['path1']['path2']['pathB']['path4'],
+# ['path1']['path2']['pathC']['path4']
+# If staticData['path1']['path2'].key() == ['pathA', 'pathB', 'pathC']
+
+# The idea is to read the string arguments from the "modify" function, 
+# evaluate them as conditions or data, and then use those to determine 
+# the specific paths where the data should be inserted in the form.
+
+# Function planning:
+# The function will handle the insertion of desired data from "fundamentalData" into the appropriate function 
+# according to the "fundamentalType". It will also modify and add more "fundamentalData" based on the data 
+# found in paths['staticData'] and insert these elements into the form according to the paths defined in path['form'].
+
+# (It’s logical to select the function to be executed based on the "fundamentalType" 
+# because the "fundamentalData" stored in "patternDefaultDatasFilled" allows us to insert 
+# as much data as needed for a single "fundamentalType". This flexibility lets us create 
+# multiple "fundamentalTypes" and define conditions (paths) according to the "typeCode" 
+# (refer to 'createPathsForFormAndForModifyData' in 'fundamentalTypesPathsInterface' to understand how path conditions are constructed)).
+
+def createPathsForFormAndForModifyData(fundamentalType, codeType):
+    """
+    Create paths for form and modify data based on specified fundamental type and code type.
+
+    Args:
+    - fundamentalType (str): The type of fundamental data.
+    - codeType (str): The type of code for which paths are being created.
+    """
+    fundamentalTypesPathsInterface = {
+        'typeCode': {
+            'fundamentalType': [
+                [['pathForm1', 'all', 'pathForm3', 'pathForm4'], ['otherFormPath']],
+                [['otherStaticDataPath'], [['pathModifyStaticData1', 'pathModifyStaticData2', 'all', 'pathModifyStaticData4']]],
+                ['other']
+            ],
+            'fundamentalType2': [['fundamentalType-typeCode'], ['fundamentalType3', ['fundamentalType-typeCode']]]
+        },
+        'typeCode2': {
+            'fundamentalType2': [['fundamentalType-typeCode']],
+            'fundamentalType3': [['fundamentalType$typeCode$staticData$3'], ['fundamentalType$typeCode$form'],
+                                 ["otherPaths 'typeUsingPaths' look in function 'createAndInsertFundamentalData'"]]
+        }
+    }
+    # The "$" indicates in "pathDrought" which data we want to place in this place according to the conditions of the function that care about it and the data in this specific dictionary.
+    pathsType = ['form', 'staticData']
+    preparation_import_data(fundamentalType, codeType, fundamentalTypesPathsInterface, pathsType)
+
+    pathsTypeAndPathsForFormUsing = {}
+    for specificPathsToFundamentalTypes in fundamentalTypesPathsInterface[codeType][fundamentalType]:
+        for pathIndex in range(len(specificPathsToFundamentalTypes[fundamentalType])):
+            fundamentalPathsInterface = []
+            for itemIndex in range(len(specificPathsToFundamentalTypes[fundamentalType][pathIndex])):
+                if specificPathsToFundamentalTypes[fundamentalType][pathIndex][itemIndex] != 'all':
+                    fundamentalPathsInterface.append([specificPathsToFundamentalTypes[fundamentalType][pathIndex][itemIndex]])
+                else:
+                    partPath = specificPathsToFundamentalTypes[fundamentalType][pathIndex][:itemIndex]
+                    dynamic_keys = get_nested_keys(pattern_default_datas_filled, partPath)
+                    fundamentalPathsInterface.append(list(dynamic_keys))
+
+            paths1 = [[]]
+            for pathInterface in fundamentalPathsInterface:
+                newPaths1 = []
+                for item in pathInterface:
+                    if paths1[0]:
+                        for currentPath in paths1:
+                            newPaths1.append(currentPath + [item])
+                    else:
+                        newPaths1.append([item])
+                paths1 = newPaths1
+
+            print(f"paths1 after processing {specificPathsToFundamentalTypes[fundamentalType][pathIndex]}: {paths1}")
+            pathsTypeAndPathsForFormUsing[pathsType[pathIndex]] = paths1
+
+
+    return pathsTypeAndPathsForFormUsing
+def get_nested_keys(data, path):
+    """
+    Traverse the data structure following the keys in the path
+    and return the keys of the last node.
+
+    Args:
+    - data (dict or list): The nested data structure to traverse.
+    - path (list): List of keys to traverse the data structure.
+
+    Returns:
+    - keys of the last node in the path.
+    """
+    for key in path:
+        data = data[key]
+    return data.keys()
+
+def get_nested_data(data, path):
+    """
+    Traverse the data structure following the keys in the path
+    and return the value of the last node.
+
+    Args:
+    - data (dict or list): The nested data structure to traverse.
+    - path (list): List of keys to traverse the data structure.
+
+    Returns:
+    - value of the last node in the path.
+    """
+    for key in path:
+        data = data[key]
+    return data
+
+def insert_data(area, path, data):
+    """
+    Traverse the data structure following the keys in the paths (excluding the last key)
+    and insert the data at the final destination.
+
+    Args:
+    - area (dict or list): The nested data structure where data will be inserted.
+    - path (list): List of keys to traverse the data structure, excluding the last key.
+    - data: The data to insert at the final destination.
+    """
+    for key in path[:-1]:
+        area = area[key]
+    area[path[-1]] = data
+
+def insertFundamentalDataForm(form, data, fundamentalPathsSystem):
+    """
+    Insert fundamental data into the form structure based on the paths in fundamentalPathsSystem.
+
+    Args:
+    - form (dict): The form structure where data will be inserted.
+    - data: The data to insert into the form structure.
+    - fundamentalPathsSystem (dict): Dictionary containing paths to insert data into the form structure.
+    """
+    for paths in fundamentalPathsSystem['form']:
+        for path in paths:
+            current = form
+            for item in path[:-1]:
+                if item not in current:
+                    current[item] = {}
+                current = current[item]
+            current[path[-1]] = data
+
+
+def preparation_import_data(systemType, system, codeType, fundamntalType, pathsType=None, runNumber=0, pathsInsertCopiedData=[]):
+    """
+    Prepare paths for form or static data based on the given interface and insert them into the system.
+
+    Args:
+    - systemType (str): Type of the system.
+    - system (dict): The system data structure.
+    - codeType (str): Type of the code.
+    - fundamntalType (str): Type of the fundamental data.
+    - pathsType (list, optional): List of paths types. Default is None.
+    - runNumber (int, optional): Run number. Default is 0.
+    - pathsInsertCopiedData (list, optional): List of paths to insert copied data. Default is an empty list.
+    """
+    wantedPaths = system[codeType][fundamntalType]
+    for wantedPathIndex in range(len(wantedPaths)):
+        if not isinstance(wantedPaths[wantedPathIndex], str):
+            if '$' in wantedPaths[wantedPathIndex]:  # Check if the path contains a '$' indicating dynamic path
+                if wantedPaths[wantedPathIndex].count('$') == runNumber:
+                    commandPath = wantedPaths[wantedPathIndex].split('$')
+                    if systemType == 'paths':
+                        if len(commandPath) >= 3:
+                            commandPath[2] = pathsType[commandPath.index(commandPath[2])]
+                        if len(commandPath) >= 4:
+                            commandPath[3] = int(commandPath[3])
+                    # Handle additional conditions and modify paths accordingly
+                    insert_data_according_fundamntal_paths(commandPath, system, codeType, fundamntalType, pathsInsertCopiedData)
+                else:
+                    print(f"Path '{wantedPaths[wantedPathIndex]}' is not valid for run number {runNumber}.")
+            else:
+                print(f"Expected a dynamic path with '$' for index {wantedPathIndex}. Found: {wantedPaths[wantedPathIndex]}")
+        else:
+            if isinstance(wantedPaths[wantedPathIndex], list):
+                pathsInsertCopiedData.append(wantedPathIndex)
+                preparation_import_data(systemType, system, codeType, fundamntalType, pathsType, runNumber, pathsInsertCopiedData)
+
+def insert_data_according_fundamntal_paths(commandPath, system, codeType, fundamntalType, pathsInsertCopiedData):
+    """
+    Get the data according to the command path and insert it into the appropriate location.
+
+    Args:
+    - commandPath (list): List representing the command path.
+    - system (dict): The system data structure.
+    - codeType (str): Type of the code.
+    - fundamntalType (str): Type of the fundamental data.
+    - pathsInsertCopiedData (list): List of paths to insert copied data.
+    """
+    data = get_nested_data(system, commandPath)
+    pathForPaste = [codeType, fundamntalType] + pathsInsertCopiedData
+    insert_data(system, pathForPaste, data)
+
+def insert_fundamental_data_to_form():
+    """
+    Insert fundamental data into the form structure based on predefined patterns and codes.
+    """
+    for codeType in pattern_default_datas_filled['codeData'].keys(): 
+        for idCode in pattern_default_datas_filled['codeData'][codeType]:
+            code = pattern_default_datas_filled['codeData'][codeType][idCode]
+            for markType, generalPatternList in pattern_default_datas_filled['staticData']['request']['requestsGenerally'][codeType].items():
+                for generalPattern in generalPatternList:
+                    if re.findall(generalPattern, code):
+                        generalRequests = re.findall(generalPattern, code)
+                        if not form['requests']['generallyRequest'][markType][codeType][idCode]:
+                            form['requests']['generallyRequest'][markType][codeType][idCode] = []
+                        form['requests']['generallyRequest'][markType][codeType][idCode].append(*generalRequests)
+
+            for generalRequest in generalRequests:
+                for patternsStagesRequest in pattern_default_datas_filled['staticData']['request']['preciselyPattern'][markType][codeType]:
+                    for patternsStageRequest in patternsStagesRequest:
+                        for patternStageRequest in patternsStageRequest:
+                            partNumber = True
+                            combinedPattern = []
+                            pattern = re.compile(patternStageRequest)
+                            if partNumber == True:
+                                match = re.match(pattern, generalRequest)
+                                partNumber = False
+                            else:
+                                match = re.search(pattern, generalRequest)
+                            if match:
+                                combinedPattern.append(patternStageRequest)
+                                break
+
+                        form['requests']['mark'][markType][codeType][idCode] = combinedPattern
+
+
+
+
+
+# We can remove duplicate functions/marks and simply add the new feature in the copy/paste mark. The duplicate function allows for copying and pasting
+# multiple times with dynamic arguments and different functions that accept varying arguments. For example, function1 can take an entire block of code 
+# that we insert during pasting to identify additional internal marks in the copied content. These marks and functions, known as "internal marks and functions," 
+# are handled within the copied block.
+
+# The default mark is the one we initially read directly from the block, and it remains unchanged through various initial functions. The form is updated 
+# based on the instructions from this default mark. When we later process the data in object-oriented programming (OOP) classes, we analyze the content 
+# and execute the necessary actions. The default mark handles simple tasks like copying and pasting, while internal marks handle more complex operations, 
+# such as processing special arguments or functions.
+
+# As we proceed, we recognize the "primary mark" (the default mark), check it, and store it in the form at the appropriate location and in the required format. 
+# This allows us to manage different parts of the block according to conditions and instructions. After handling the default mark, we process function 
+# arguments and other specific tasks as requested, modifying or inserting the required content into the block or another targeted area.
+
+# Once we understand the system's modification process and how the client receives it, we realize the importance of specifying the conditions under which 
+# the system should modify or add an argument. For example, you might have conditions like argumentId?(+=)!(+1) or argumentId?(function1). 
+# This allows us to define when to modify or add an argument within the specific block or context.
+
+# To accurately place a variable or perform an action on a variable/object within a block, we must determine the indices of the curly braces ({}) that 
+# enclose the variable. If there are multiple opening braces ({) within the same block, we must find the corresponding closing braces (}) in sequence.
+
+# When inserting or modifying an argument within a block or catch (a section marked by opening and closing tags), there are several mandatory steps 
+# to ensure the operation is successful:
+
+# First, we loop through the block to identify the indices of matching { } pairs. Then, we insert or modify the chosen dynamic argument, which may 
+# be outside the catch (i.e., not directly related to it) but can still reside within the catch area. This argument does not need to be inserted or 
+# modified by the default mark that closes this area (like a standard argument inserted at the beginning).
+
+# In summary, there are two types of arguments: those belonging to a catch and regular arguments. We first insert and modify the regular arguments, 
+# then handle sub-arguments belonging to a catch class in the same way. We check the argument's condition and type. If the argument is an ordinary 
+# one (ORD) that needs to be within the block's scope, we create a list of indices for the curly braces ({}) and perform necessary operations accordingly.
+
+# When we insert or modify an argument, the length of the argument changes. We adjust the constituent list of indices by calculating:
+# A = B(length_argument_rightNow_old) - C(length_argument_rightNow_new)
+# Then, we update all relevant indices in the constituent list.
+
+# Knowing the block's boundaries is crucial. When inserting or modifying an argument, we must accurately place it within the desired block, 
+# considering the indices of the surrounding curly braces. The indices change with each insertion, so they must be recalculated.
+
+# To get the corresponding opening and closing tags (<B></B>), we catch the next immediate closing tag. However, if another opening tag (<B>) appears 
+# before the closing tag, we must locate the next closing tag accordingly. We repeat this process until we correctly match all opening and closing tags.
+
+# We build a list of opening and closing tags, ordered from lowest to highest index. Then, we loop through this list, checking if each closing index 
+# matches the corresponding opening index, and adjust the indices as needed.
+
+#
+def createIndexPlaceTag(text,scanTgIndexResult,patternForSearchTags):
+  for typeCode in patternForSearchTags:
+    for tagStatus,tags in patternForSearchTags[typeCode].items():
+      for textIndex in range(len(text)): 
+        for tagType,tag in tags.items():
+          if text[textIndex]==tag[0]:
+            for tagTypeIndex in range(1,len(tag)):
+              if tag[tagTypeIndex]==text[textIndex+tagTypeIndex] and tagTypeIndex==len(tag)-1 and re.match(r'/\s||\n',text[textIndex+tagTypeIndex+1:]):
+                scanTgIndexResult[tagStatus].append([textIndex,tagTypeIndex])
+              if scanTgIndexResult[tagTypeIndex]==text[textIndex+tagTypeIndex]:
+                continue
+              else:
+                break 
+"""
+import re
+import dataBase_and_fundamntal_part_1
+
+# Example patterns for searching tags
+SearchMarkExamplePattern = {'markName': {'typeMark': {'typeCode': {'markStatus': {'statusTag': []}}}}}
+SearchMarksexample = {
+    'tag': {
+        'block': {
+            'code': {'open': '<B>', 'close': '</B>'},
+            'text': {'close': '</B>'}
+        },
+        'argumentDetails': {
+            'text': {'open': '(~', 'close': '~)'}
+        }
+    }
+}
+
+def lines_lists_code_indexes(code):
+    """
+    Splits the code into lines and returns a list of indexes for each line.
+    
+    Arguments:
+    code -- A string containing the code
+    
+    Returns:
+    linesListsTextInCode -- A list of index lists for each line
+    """
+    text_lines = code.split('\n')
+    lines_indexes = []
+    lines_text_in_code = []
+
+    for line in text_lines:
+        indexes_line = list(range(len(line)))
+        lines_indexes.append(indexes_line)
+        lines_text_in_code.append(indexes_line)
+
+    return lines_text_in_code
+
+def marks(code):
+    """
+    Scans the code and identifies tags and related information.
+    
+    Arguments:
+    code -- A string containing the code
+    
+    Returns:
+    scanResultTag -- A dictionary with the scan results of tags and related information
+    """
+    scan_result_tag = {}
+    lines_index_lists_code = lines_lists_code_indexes(code)
+    dictionary_code_line = {}
+
+    # Initialize a map of indexes for lines in the code
+    for line_code_index in range(len(lines_index_lists_code)):
+        dictionary_code_line[f'{line_code_index}'] = 0
+
+    # Iterate over code types and search patterns
+    for type_code in dataBase_and_fundamntal_part_1.pattern_default_datas_filled['dataCode']['realCode'].keys():
+        for id_code, codes in dataBase_and_fundamntal_part_1.pattern_default_datas_filled['dataCode']['realCode'][type_code].items():
+            for code_snippet in codes:
+                for mark_name in dataBase_and_fundamntal_part_1.pattern_default_datas_filled['names']['marks']['defaultMark']:
+                    for type_mark in dataBase_and_fundamntal_part_1.pattern_default_datas_filled['staticData']['marks'][mark_name].keys():
+                        for status_tag, marks in dataBase_and_fundamntal_part_1.pattern_default_datas_filled['staticData']['marks'][type_mark][type_code].items():
+                            path = [mark_name, type_mark, type_code, id_code]
+                            match_pairs = find_range_wanted(code_snippet, marks)
+                            if match_pairs[0]:
+                                for text_index_start, text_index_end in match_pairs:
+                                    for indexes_line_index in range(len(lines_index_lists_code)):
+                                        if [text_index_start, text_index_end] in lines_index_lists_code[indexes_line_index]:
+                                            line = ''.join([code_snippet[index] for index in lines_index_lists_code[indexes_line_index]])
+                                            dictionary_code_line[indexes_line_index] += 1
+                                            break
+                                    tag = code_snippet[text_index_start:text_index_end]
+                                    match_pairs = find_range_wanted(line, [tag])  # Returns the area with range indexes according to the names -> [[start1,end1],[start2,end2]]
+                                    tag_index_start = match_pairs[dictionary_code_line[indexes_line_index]][0]
+                                    tag_index_end = match_pairs[dictionary_code_line[indexes_line_index]][1]
+                                    if possible_after_and_end_in_text(
+                                            line,
+                                            {
+                                                'before': ['every-possible-thing/s-can-be-before-the-tag'],
+                                                'after': ['every-possible-thing/s-can-be-after-the-tag']
+                                            },
+                                            tag_index_start, tag_index_end, details):
+
+                                        if mark_name == 'details':
+                                            data_from_details = code_snippet[text_index_start:text_index_end]
+                                            data_from_details_organs = data_from_details.split(',')
+                                            if data_from_details_organs:
+                                                data = {}
+                                                for organ in data_from_details_organs:
+                                                    key_and_value = organ.split(':')
+                                                    if key_and_value[0] == 'id':
+                                                        details_id = key_and_value[1]
+                                                        path.insert(-1, details_id)
+                                                    data[key_and_value[0]] = key_and_value[1]
+                                                area = dataBase_and_fundamntal_part_1.get_nested_data(
+                                                    dataBase_and_fundamntal_part_1.form['mark'], path)
+                                                area.append(data)
+                      # Additional conditions for each markName...
+
+                                        praperation_for_orderPairsMarksTags(scan_result_tag, [mark_name, type_mark, type_code, status_tag])
+                                        scan_result_tag = dataBase_and_fundamntal_part_1.get_nested_data(
+                                            scan_result_tag, [mark_name, type_mark, type_code, id_code, status_tag])
+                                        scan_result_tag['start'] = [text_index_start]
+                                        scan_result_tag['end'] = [text_index_end]
+                                        orderPairsMarksTags(scan_result_tag)
+
+def praperation_for_orderPairsMarksTags(data, path):
+    """
+    Prepares the scan result for ordering by iterating through the given path
+    and ensuring that the nested data structure exists.
+
+    Arguments:
+    data -- The data structure being manipulated.
+    path -- A list representing the path in the data structure.
+    """
+    for index in range(len(path)):
+        nested_data = dataBase_and_fundamntal_part_1.get_nested_data(data, path[index:])
+        if not nested_data:
+            nested_data = {}
+
+pairsCodeTag = []
+
+def orderPairsMarksTags(scanResultTag):
+    """
+    Orders pairs of marks and tags based on their opening and closing positions in the code.
+
+    Arguments:
+    scanResultTag -- A dictionary containing the scanned tags and their positions.
+    """
+    scanTagIndex = {}
+    for markName in scanResultTag.keys():
+        for typeMark in scanResultTag[markName]:
+            for codeType in scanResultTag[markName][typeMark].keys():
+                for idCode in scanResultTag[markName][typeMark][codeType].keys():
+                    statusTag_and_indexes = scanResultTag[markName][typeMark][codeType][idCode]
+                    for indexTagIndexOpen in range(len(statusTag_and_indexes['open']['start'])):
+                        if statusTag_and_indexes['open']['start'][indexTagIndexOpen].isdigit():
+                            howMuchOpeningTag = 0
+                            for closeTagIndex in statusTag_and_indexes['close']['start']:
+                                if closeTagIndex > statusTag_and_indexes['open']['start'][indexTagIndexOpen]:
+                                    howMuchOpeningTag += 1
+                                    praperation_for_orderPairsMarksTags(scanTagIndex, [markName, typeMark, codeType, idCode])
+                                    scanTagIndex[typeMark] = scanResultTag[typeMark]
+                                    for statusTagIndex in range(len(statusTag_and_indexes.keys())):
+                                        for when in statusTag_and_indexes[statusTag_and_indexes.keys()[statusTagIndex]]:
+                                            if statusTag_and_indexes.keys()[statusTagIndex] == 'open':
+                                                statusTag_and_indexes[statusTag_and_indexes[statusTag_and_indexes.keys()[statusTagIndex]]][when][indexTagIndexOpen] = statusTag_and_indexes[statusTag_and_indexes[statusTag_and_indexes.keys()[statusTagIndex]]][when][indexTagIndexOpen]
+                                            else:
+                                                statusTag_and_indexes[statusTag_and_indexes[statusTag_and_indexes.keys()[statusTagIndex]]][when][indexTagIndexOpen] = statusTag_and_indexes[statusTag_and_indexes[statusTag_and_indexes.keys()[statusTagIndex]]][when][indexTagIndexOpen + howMuchOpeningTag]
+    
+    dataBase_and_fundamntal_part_1.form['mark']['ranges'] = scanResultTag
+
+def changeName(code, catchNamesLists):
+    """
+    Replaces old names with new ones in the given code based on the provided list.
+
+    Arguments:
+    code -- The code in which the names need to be changed.
+    catchNamesLists -- A list of tuples containing old and new names.
+    """
+    if isinstance(catchNamesLists, list):
+        if code == f'{code}':
+            for new, old in catchNamesLists:
+                match_range = find_range_wanted(code, [old])
+                dataBase_and_fundamntal_part_1.delete_range(code, match_range[0])
+                code.insert(new, match_range[0][0])
+        else:
+            print("Code error!")
+    else:
+        print("Catch error!")
+
+# Example of scanned tag order patterns
+scanIndexTagOrderPatternExample = {
+    'tagType': {
+        'statusTag': {
+            'codeType': {
+                'start': ['indexes...'],
+                'end': ['indexes...']
+            }
+        }
+    }
+}
+
+# Example of scanned tag orders with mark names and types
+scanIndexTagOrderExampleIdMark = {
+    'mark': {
+        'markName': {
+            'markType': {
+                'typeCode': {
+                    'idCode': {
+                        'open': {
+                            'start': [1, 2, 4],
+                            'end': [3, 5, 6]
+                        },
+                        'close': {
+                            'start': [100, 1001],
+                            'end': [101, 1002]
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+# Example of scanned tag orders with ID marks
+scanIndexTagOrderExampleIdMark = {
+    'mark': {
+        'markName': {
+            'markType': {
+                'typeCode': {
+                    'idCode': {
+                        'idMark': {
+                            'open': {
+                                'start': [1],
+                                'end': [6]
+                            },
+                            'close': {
+                                'start': [1001],
+                                'end': [1004]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+system_language_code_example2 = """(argument.id="argumentId")?([0] -> +=^This before^1^This after^)~
+([1]<-1^tow^2^towAfter^)!(modify before in condition[0] "^This after^" after "^This before^" catch 1 equal 2',
+modify after ^tow^ before ^towAfter^ condition[1][condition[1].index(2)]=3
+#System language ."""
+
+system_language_code_example = """(*(argument.id=(1,2),tag.id=(2)*),
+(*from close/open after/before [5-20]*) ,(*(&before& ^simpleMark^ &after& 2 &exist& hello shortFunc client! &or& &exist& Elior &and& 
+&$from Elior 4 after [5-20]$& &exist 4& Banda),
+# In result/perform place like it we again work with originally slice code, but now we change the sliceCode and so the code itself of course we can work with
+# codeForCondition like condition case. figure out it when you read all the "beforeOrAfterCommandFund" func.
+
+# (&after 1& 0 &before 1& 1 &$from Elior 4 after [5-20]$& &exist 4& &equal& hello world)*)~(*(aditionalCondition),(aditionalPerform)*)"""
+
+def beforeOrAfterCommandFund(code, argument, beforeOrAfter, findNumber):
+    """
+    Handles before/after command in the custom language.
+
+    Arguments:
+    code -- The code being analyzed.
+    argument -- The argument to search for.
+    beforeOrAfter -- Indicates whether to search before or after the argument.
+    findNumber -- The occurrence number of the argument.
+
+    Returns:
+    A tuple containing the slice of the code and a boolean indicating if the argument was found.
+    """
+    rangesArgument = find_range_wanted(code, [argument])
+    if rangesArgument[0]:
+        if beforeOrAfter == 'after':
+            sliceCode = code[rangesArgument[findNumber][1]:len(code)]
+        elif beforeOrAfter == 'before':
+            sliceCode = code[:rangesArgument[findNumber][0]]
+        return (sliceCode, True)
+    else:
+        return (None, False)
+
+def existCommand(code, argument):
+    """
+    Checks if the argument exists in the code.
+
+    Arguments:
+    code -- The code being analyzed.
+    argument -- The argument to search for.
+
+    Returns:
+    A boolean indicating if the argument was found.
+    """
+    return bool(find_range_wanted(code, argument)[0])
+
+categoryCommandFunction = {
+    'innovativeCode': ['before', 'after'],
+    'boolean': ['exist'],
+    'bindCondition': ['or', 'and'],
+    'changeBase': ['$']
+}
+
+commands = {
+    'before': lambda code, argument: beforeOrAfterCommandFund(code, argument, 'before', 0),
+    'after': lambda code, argument: beforeOrAfterCommandFund(code, argument, 'after', 0),
+    'exist': existCommand,
+    '$': lambda code, indexesRangeList, rangeWantedArgument, searchDirection:
+        cutterCodeAccordingSearchDirectionAndRange(code, indexesRangeList, rangeWantedArgument, searchDirection)
+}
+
+# The "dynamic" in the first part of this code will be most of the time "details" because we need details in order to discover these things in the code.
+
+def translation(system_language_code, typeCode, idCode):
+    """
+    Translates the system language code into actual code based on the provided typeCode and idCode.
+    
+    Arguments:
+    system_language_code -- The system language code to be translated.
+    typeCode -- The type of code to be processed.
+    idCode -- The specific ID code related to the typeCode.
+    
+    Returns:
+    The translated code after processing.
+    """
+    code = dataBase_and_fundamntal_part_1.pattern_default_datas_filled['dataCode']['realCode'][typeCode][idCode]
+    system_language_code_organs = re.findall(r'\(\*.*?\*\)', system_language_code, re.DOTALL)
+    
+    # Process each organ in the system language code
+    for organCodeIndex in range(len(system_language_code_organs)):
+        system_language_code_organs[organCodeIndex] = system_language_code_organs[organCodeIndex][2:-2]  # Removing surrounding '(*' and '*)'
+    
+    dynamics = system_language_code_organs[0]
+    beginningCondition = system_language_code_organs[1]
+    bodyConditionsAndResults = system_language_code_organs[2:]
+
+    # Processing dynamic values and commands
+    for dynamic in dynamics.split(','):
+        dynamicKeyValue = dynamic.split('=')
+        typeMark, subData = dynamicKeyValue[0].split('.')
+        values = dynamicKeyValue[1][1:-1]  # Removing surrounding brackets
+        
+        markName = dataBase_and_fundamntal_part_1.get_nested_data(dataBase_and_fundamntal_part_1.pattern_default_datas_filled['names']['mark'], [typeMark])
+        
+        for value in values.split(','):
+            path = [markName, typeMark, typeCode, idCode]
+            if subData == 'id':
+                detailsId = value
+            if markName == 'details':
+                path.insert(-1, detailsId)
+                
+            rangesOf = dataBase_and_fundamntal_part_1.get_nested_data(dataBase_and_fundamntal_part_1.form['mark']['ranges'], path)
+            detailsData = dataBase_and_fundamntal_part_1.get_nested_data(dataBase_and_fundamntal_part_1.form['mark'], path)
+            openAndCloseIndexes = {}
+
+            for statusTag in rangesOf.keys():
+                for index in range(len(rangesOf[statusTag]['start'])):
+                    if statusTag not in openAndCloseIndexes:
+                        openAndCloseIndexes[statusTag] = []
+                    openAndCloseIndexes[statusTag].append([rangesOf[statusTag]['start'][index], rangesOf[statusTag]['end'][index]])
+
+            closeAndOpenTagsIndex = [[openAndCloseIndexes['open'][tagIndex], openAndCloseIndexes['close'][tagIndex]] for tagIndex in range(len(openAndCloseIndexes['open']))]
+
+            # Parse the beginning condition
+            separateFromCommand = re.split(r'from', beginningCondition)
+            subBeginningCondition = re.split(r'\s+', separateFromCommand[0])
+            closeOrOpenTagCommand = subBeginningCondition[0]
+            searchDirection = subBeginningCondition[1]
+            exactlyPlaceForSearch = subBeginningCondition[2][1:-1]
+
+            if closeOrOpenTagCommand == 'open':
+                closeOrOpenTagCommandIndex = 0
+            else:
+                closeOrOpenTagCommandIndex = 1
+
+            indexesRangeList = re.split(r'-', exactlyPlaceForSearch)
+
+            for closeAndOpenTag in closeAndOpenTagsIndex:
+                cutterResult = cutterCodeAccordingSearchDirectionAndRange(code, indexesRangeList, closeAndOpenTag[closeOrOpenTagCommandIndex], searchDirection)
+                sliceCode = cutterResult['sliceCode']
+                rangeReport = cutterResult['rangeReport']
+
+                # Processing conditions and results
+                for bodyConditionAndResult in bodyConditionsAndResults:
+                    open_indices = find_range_wanted(bodyConditionAndResult, r'\(')
+                    close_indices = find_range_wanted(bodyConditionAndResult, r'\)')
+                    match_pairs = orderPair([open_indices, close_indices])
+
+                    bodyConditionsCommand = bodyConditionAndResult[match_pairs[0][0]:match_pairs[0][1]]
+                    bodyResults = bodyConditionAndResult[match_pairs[-1][0]:match_pairs[-1][1]]
+
+                    argumentAndcommandPairsConditions = argumentAndcommandPairs(bodyConditionsCommand, '$')
+                    argumentAndcommandPairsResults = argumentAndcommandPairs(bodyResults, '$')
+
+                    for index in range(len(argumentAndcommandPairsConditions)):
+                        condition_result = commandCareSystem(argumentAndcommandPairsConditions[index], sliceCode)
+                        if condition_result['condtionStr']:
+                            result_result = commandCareSystem(argumentAndcommandPairsResults[index], sliceCode)
+                            if result_result['condtionStr']:
+                                print("Performing in code...")
+                                if condition_result['wholeModifyCliseCode']:
+                                    code = dataBase_and_fundamntal_part_1.delete_range(code, rangeReport)
+                                    code.insert(condition_result['wholeModifyCliseCode'], rangeReport[0])
+                                    dataBase_and_fundamntal_part_1.pattern_default_datas_filled['codeData']['real-code'][typeCode][idCode] = code
+                                else:
+                                    print("Nothing found in wholeModifyCliseCode")
+                        else:
+                            print(f"Condition {index} did not succeed")
+
+def commandCareSystem(argumentAndcommandPair, sliceCode, conditionStr=''):
+    """
+    Processes the command and its corresponding argument.
+    
+    Arguments:
+    argumentAndcommandPair -- A dictionary containing the command and its argument.
+    sliceCode -- The slice of code being processed.
+    conditionStr -- The current condition string being built.
+    
+    Returns:
+    resultData -- A dictionary containing the processed data including modified code slices, condition strings, and range reports.
+    """
+    resultData = {
+        'codeSliceEnslaved': sliceCode,
+        'condtionStr': conditionStr,
+        'codesSliceEnslavedList': [],
+        'rangesReport': []
+    }
+    
+    function = argumentAndcommandPair['command']
+    argument = argumentAndcommandPair['argument']
+
+    if function in categoryCommandFunction['bindCondition']:
+        if conditionStr.split(' ')[-1] in categoryCommandFunction['bindCondition']:
+            conditionStr += f' {function}'  # The function name itself will be "or"/"and"...
+            resultData['codeSliceEnslaved'] = sliceCode 
+        else:
+            print('Wrong condition: double "bindCondition" command')
+    elif argument[-1] and argument[0] in categoryCommandFunction['changeBase']:
+        argument = argument[1:-1]
+        argumentOrganSpace = re.split(r'\s+', argument)
+        if argumentOrganSpace[0] == 'form':
+            organBeginningForCut = argumentOrganSpace[1]
+            organBeginningForCutRange = find_range_wanted(sliceCode, organBeginningForCut)
+            findNumber = int(argumentOrganSpace[2])
+            organBeginningForCutRangeWanted = organBeginningForCutRange[findNumber]
+            where = argumentOrganSpace[3]
+            searchPlace = argumentOrganSpace[4][1:-1]
+            indexesRangeList = re.split(r'-', searchPlace)
+
+            cutterResult = cutterCodeAccordingSearchDirectionAndRange(sliceCode, indexesRangeList, organBeginningForCutRangeWanted, where)
+            resultData['codesSliceEnslavedList'].append(sliceCode)
+            resultData['codeSliceEnslaved'] = cutterResult['sliceCode']
+            resultData['rangesReport'].append(cutterResult['rangeReport'])
+    else:
+        argumentOrganSpace = re.split(r'\s+', argument)
+        if function in categoryCommandFunction['innovativeCode']:
+            resultStr = f'result = commands["{function}"](sliceCode, "{argument}", int(argumentOrganSpace[1]))'
+        else:
+            resultStr = f'result = commands["{function}"](sliceCode, "{argument}")'
+        
+        result = eval(resultStr)
+
+        if function in categoryCommandFunction['innovativeCode'] or function in categoryCommandFunction['boolian']:
+            if function in categoryCommandFunction['innovativeCode'] and result:
+                boolianResult = result[1]
+                resultData['codesSliceEnslavedList'].append(sliceCode)
+                resultData['rangesReport'].append(result['rangeReport'])
+                resultData['codeSliceEnslaved'] = result['sliceCode']
+            else:
+                boolianResult = result
+            if conditionStr.split(' ')[-1] not in categoryCommandFunction['bindCondition']:
+                conditionStr += f' {boolianResult} and'
+        elif function in categoryCommandFunction['bindCondition']:
+            if conditionStr.split(' ')[-1] in categoryCommandFunction['bindCondition']:
+                conditionStr += f' {function}'
+            else:
+                print('Wrong condition: double "bindCondition" command')
+        else:
+            print(f"Command '{function}' not found")
+    
+    # Reverse the order of the slices for modification
+    codesSliceEnslavedListReversed = list(reversed(resultData['codesSliceEnslavedList']))
+    rangesReportReversed = list(reversed(resultData['rangesReport']))
+
+    for index in range(len(codesSliceEnslavedListReversed)):
+        if index == len(codesSliceEnslavedListReversed) - 1:
+            resultData['wholeModifyCliseCode'] = codeAfterDeleteRnageData
+            break
+        else:
+            codeAfterDeleteRnageData = dataBase_and_fundamntal_part_1.delete_range(codesSliceEnslavedListReversed[index + 1], rangesReportReversed[index])
+            codeAfterDeleteRnageData.insert(codesSliceEnslavedListReversed[index], rangesReportReversed[index][0])
+            codesSliceEnslavedListReversed[index + 1] = codeAfterDeleteRnageData
+
+    return resultData
+
+def argumentAndcommandPairs(bodySubOrgansCommand, markCommand):
+    """
+    Splits the body of the command into pairs of arguments and commands.
+    
+    Arguments:
+    bodySubOrgansCommand -- The body of the command containing arguments and commands.
+    markCommand -- The marker command to split by.
+    
+    Returns:
+    argumentAndcommandPairs -- A list of dictionaries containing commands and their corresponding arguments.
+    """
+    argumentAndcommandPairs = []
+    commands = [part for index, part in enumerate(bodySubOrgansCommand.split(markCommand)) if index % 2 == 1]
+    arguments = [part for index, part in enumerate(bodySubOrgansCommand.split(markCommand)) if index % 2 == 0]
+
+    for commandIndex in range(len(commands)):
+        argumentAndcommandPairs.append({
+            'command': commands[commandIndex],
+            'argument': arguments[commandIndex + 1]
+        })
+
+    return argumentAndcommandPairs
+
+def cutterCodeAccordingSearchDirectionAndRange(code, indexesRangeList, startAndEnd, searchDirection='after'):
+    """
+    Cuts the code slice based on the search direction and range of indexes provided.
+
+    Arguments:
+    code -- The code being analyzed.
+    indexesRangeList -- The range of indexes to be considered.
+    startAndEnd -- A tuple indicating the start and end positions for the search.
+    searchDirection -- The direction of the search ('after' or 'before').
+
+    Returns:
+    A dictionary with the cut code slice and the range report.
+    """
+    if searchDirection == 'after':
+        searchDirectionSign = '+'
+        indexForSearchBeginning = startAndEnd[1]
+    else:
+        indexForSearchBeginning = startAndEnd[0]
+        searchDirectionSign = '-'
+
+    if len(indexesRangeList) == 2 and (indexesRangeList[0].isdigit() or indexesRangeList[1].isdigit()):
+        for indexRange in range(len(indexesRangeList)):
+            if not indexesRangeList[indexRange].isdigit():
+                if indexRange == 0:
+                    startRange = indexForSearchBeginning
+                else:
+                    if searchDirectionSign == '-':
+                        endRange = 0
+                    elif searchDirectionSign == '+':
+                        endRange = len(code) - 1
+            else:
+                if indexRange == 0:
+                    startRange = eval(f'{indexForSearchBeginning}{searchDirectionSign}{indexesRangeList[indexRange]}')
+                else:
+                    endRange = eval(f'{indexForSearchBeginning}{searchDirectionSign}{indexesRangeList[indexRange]}')
+        if searchDirectionSign == '-':
+            rangeReport = {"startRange": endRange, "endRange": startRange}
+            sliceCode = code[endRange:startRange]
+        else:
+            rangeReport = {"startRange": startRange, "endRange": endRange}
+            sliceCode = code[startRange:endRange]
+
+    return {"sliceCode": sliceCode, 'rangeReport': rangeReport}
+
+def orderPair(ranges):
+    """
+    Orders pairs of tags based on their opening and closing positions.
+
+    Arguments:
+    ranges -- A list or dictionary containing the opening and closing ranges.
+
+    Returns:
+    match_pairs -- A list of matched pairs of opening and closing ranges.
+    """
+    match_pairs = []
+    if isinstance(ranges, dict):
+        rangesOpen = ranges['open']
+        rangesClose = ranges['close']
+    else:
+        rangesOpen = ranges[0]
+        rangesClose = ranges[1]
+
+    for indexOpenListIndex in range(len(rangesOpen)):
+        indexOpen = rangesOpen[indexOpenListIndex][0]
+        howMuchCloseTagBeforeOpen = 0
+        for indexCloseList in rangesClose:
+            indexClose = indexCloseList[0]
+            if indexClose > indexOpen:
+                howMuchCloseTagBeforeOpen += 1
+        match_pairs.append([rangesOpen[indexOpenListIndex], rangesClose[indexOpenListIndex + howMuchCloseTagBeforeOpen]])
+
+    return match_pairs
+
+def find_range_wanted(code, organs):
+    """
+    Finds the range of indexes for a given list of organs in the code.
+
+    Arguments:
+    code -- The code being analyzed.
+    organs -- A list of organs to search for in the code.
+
+    Returns:
+    ranges -- A list of ranges where the organs are found in the code.
+    """
+    ranges = []
+    for index in range(len(code)):
+        for organ in organs:
+            if code[index] == organ[0]:
+                if len(organ) > 1:
+                    for organIndex in range(1, len(organ)):
+                        if organ[organIndex] == code[index + organIndex]:
+                            if organIndex == len(organ) - 1:
+                                ranges.append([index, index + organIndex])
+                            continue
+                        else:
+                            break
+                else:
+                    ranges.append([index])
+    return ranges
+
+def deleteNotImportantSpace(text):
+    """
+    Deletes unnecessary spaces from the text.
+
+    Arguments:
+    text -- The text to be cleaned.
+
+    Returns:
+    The cleaned text with unnecessary spaces removed.
+    """
+    lineList = text.split("\n")
+    for lineIndex in range(len(lineList)):
+        line = lineList[lineIndex]
+        for index in range(len(line)):
+            i = len(line) - index
+            for spaceTryIndex in range(len(line[i:])):
+                if not line[spaceTryIndex] == " " and spaceTryIndex != len(line[i + 1:]) - 1:
+                    break
+                if line[i:][spaceTryIndex] == '\n' and spaceTryIndex == len(line[i + 1:]) - 1:
+                    line = line[:len(line[i + 1:]) - 1]
+    return '\n'.join(lineList)
